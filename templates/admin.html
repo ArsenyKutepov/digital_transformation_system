@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Панель администратора</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F8FAFC; }
+        .header { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: white; padding: 30px; text-align: center; }
+        .container { max-width: 1200px; margin: -20px auto 0; padding: 20px; }
+        .card { background: white; border-radius: 20px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h2 { margin-bottom: 20px; border-left: 4px solid #3B82F6; padding-left: 15px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 20px; }
+        .stat-card { background: white; border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #E2E8F0; }
+        .stat-number { font-size: 32px; font-weight: bold; color: #3B82F6; }
+        .stat-label { font-size: 14px; color: #64748B; margin-top: 8px; }
+        .btn { display: inline-block; padding: 10px 20px; background: #3B82F6; color: white; text-decoration: none; border-radius: 10px; margin: 5px; }
+        .btn-secondary { background: #10B981; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .admin-links { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
+        .admin-link { background: #F1F5F9; padding: 12px 20px; border-radius: 12px; text-decoration: none; color: #0F172A; font-weight: 500; display: inline-flex; align-items: center; gap: 10px; }
+        .admin-link:hover { background: #E2E8F0; }
+        .benchmark-table { width: 100%; border-collapse: collapse; }
+        .benchmark-table th, .benchmark-table td { padding: 10px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+        .benchmark-table th { background: #F1F5F9; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚙️ Панель администратора</h1>
+        <p>Управление системой, действиями и планировщиком</p>
+    </div>
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-number">{{ metrics.users.total }}</div><div class="stat-label">Пользователей</div></div>
+            <div class="stat-card"><div class="stat-number">{{ metrics.organizations.total }}</div><div class="stat-label">Организаций</div></div>
+            <div class="stat-card"><div class="stat-number">{{ metrics.assessments.total }}</div><div class="stat-label">Оценок ЦЗ</div></div>
+            <div class="stat-card"><div class="stat-number">{{ metrics.plans.success_rate }}%</div><div class="stat-label">Успешность планов</div></div>
+        </div>
+
+        <div class="admin-links">
+            <a href="/admin/actions" class="admin-link">📋 Управление действиями</a>
+            <a href="/admin/scheduler" class="admin-link">⏰ Планировщик задач</a>
+            <a href="/admin/users" class="admin-link">👥 Управление пользователями</a>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h2>📊 Отраслевые бенчмарки</h2>
+                {% if benchmark_table %}
+                    {{ benchmark_table | safe }}
+                {% else %}
+                    <p style="color: #64748B;">Нет данных для отображения. Добавьте оценки для создания бенчмарков.</p>
+                {% endif %}
+            </div>
+            <div class="card">
+                <h2>📈 Системные метрики</h2>
+                <p><strong>Средний ответ API:</strong> {{ metrics.performance.avg_response_time }} с</p>
+                <p><strong>Размер БД:</strong> {{ metrics.performance.db_size }}</p>
+                <p><strong>Активных сессий:</strong> {{ metrics.performance.active_sessions }}</p>
+                <p><strong>Завершено спринтов:</strong> {{ metrics.sprints.completed }}</p>
+                <p><strong>Точность прогноза:</strong> {{ metrics.sprints.forecast_accuracy }}%</p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/" class="btn">← На главную</a>
+        </div>
+    </div>
+</body>
+</html>
