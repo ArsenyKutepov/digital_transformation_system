@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Спринты - Дорожная карта</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F8FAFC; }
+        .header { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: white; padding: 30px; text-align: center; }
+        .container { max-width: 1200px; margin: -20px auto 0; padding: 20px; }
+        .card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h2 { margin-bottom: 20px; border-left: 4px solid #3B82F6; padding-left: 15px; }
+        .sprint-list { display: flex; flex-direction: column; gap: 15px; }
+        .sprint-card { background: #F8FAFC; border-radius: 16px; padding: 20px; border-left: 4px solid #3B82F6; transition: transform 0.2s; }
+        .sprint-card:hover { transform: translateX(5px); }
+        .sprint-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+        .sprint-number { font-size: 18px; font-weight: bold; color: #0F172A; }
+        .sprint-status { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .status-planned { background: #E2E8F0; color: #475569; }
+        .status-active { background: #DBEAFE; color: #1E40AF; }
+        .status-completed { background: #D1FAE5; color: #065F46; }
+        .status-delayed { background: #FEE2E2; color: #991B1B; }
+        .sprint-dates { font-size: 13px; color: #64748B; margin-bottom: 10px; }
+        .sprint-growth { font-size: 14px; font-weight: 500; margin-top: 10px; }
+        .btn { display: inline-block; padding: 8px 16px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 500; margin-right: 10px; margin-top: 10px; }
+        .btn-primary { background: #3B82F6; color: white; }
+        .btn-primary:hover { background: #2563EB; }
+        .btn-success { background: #10B981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-outline { background: transparent; border: 1px solid #CBD5E1; color: #475569; }
+        .btn-outline:hover { border-color: #3B82F6; color: #3B82F6; }
+        .back-link { display: inline-block; margin-top: 20px; color: #64748B; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-tasks"></i> Управление спринтами</h1>
+        <p>Пошаговая реализация дорожной карты</p>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h2>Спринты по плану</h2>
+
+            {% if active_sprint %}
+            <div style="background: #DBEAFE; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <strong><i class="fas fa-play-circle"></i> Активный спринт #{{ active_sprint.number }}</strong>
+                <p style="margin-top: 8px;">Плановое завершение: {{ active_sprint.planned_end }}</p>
+                <a href="/sprints/{{ active_sprint.id }}/complete" class="btn btn-success" style="margin-top: 10px;">
+                    <i class="fas fa-check"></i> Завершить спринт
+                </a>
+            </div>
+            {% endif %}
+
+            <div class="sprint-list">
+                {% for sprint in sprints %}
+                <div class="sprint-card">
+                    <div class="sprint-header">
+                        <span class="sprint-number">Спринт #{{ sprint.number }}</span>
+                        <span class="sprint-status status-{{ sprint.status }}">
+                            {% if sprint.status == 'planned' %}Запланирован
+                            {% elif sprint.status == 'active' %}Активен
+                            {% elif sprint.status == 'completed' %}Завершён
+                            {% else %}Просрочен
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="sprint-dates">
+                        <i class="fas fa-calendar"></i> {{ sprint.planned_start }} — {{ sprint.planned_end }}
+                    </div>
+                    <div class="sprint-growth">
+                        📈 Плановый рост: {{ sprint.planned_growth }}%
+                        {% if sprint.actual_growth %}
+                        | ✅ Фактический рост: {{ sprint.actual_growth }}%
+                        {% endif %}
+                    </div>
+                    {% if sprint.status == 'planned' %}
+                    <a href="/sprints/{{ sprint.id }}/start" class="btn btn-primary">
+                        <i class="fas fa-play"></i> Начать спринт
+                    </a>
+                    {% elif sprint.status == 'completed' %}
+                    <a href="/sprints/{{ sprint.id }}/view" class="btn btn-outline">
+                        <i class="fas fa-eye"></i> Просмотреть
+                    </a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> На главную</a>
+        </div>
+    </div>
+</body>
+</html>

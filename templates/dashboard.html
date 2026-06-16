@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Content-Language" content="ru">
+    <title>Аналитическая панель - Цифровая трансформация</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 15px;
+            color: #333;
+            border-left: 4px solid #667eea;
+            padding-left: 12px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .recommendations {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        select, input {
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .full-width {
+                grid-column: span 1;
+            }
+            .metrics-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Аналитическая панель цифровой трансформации</h1>
+        <div>
+            <a href="/" class="btn" style="background: rgba(255,255,255,0.2);">🏠 Главная</a>
+            <a href="/assessment" class="btn" style="background: rgba(255,255,255,0.2);">➕ Новая оценка</a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Организация селектор -->
+        <div class="chart-card">
+            <div class="controls">
+                <label>Выберите организацию:</label>
+                <select id="orgSelector" onchange="loadOrgData(this.value)">
+                    <option value="">-- Выберите организацию --</option>
+                    {% for org in organizations %}
+                    <option value="{{ org.id }}" {% if org.id == selected_org %}selected{% endif %}>{{ org.name }}</option>
+                    {% endfor %}
+                </select>
+                <label>Период:</label>
+                <select id="periodSelector" onchange="changePeriod(this.value)">
+                    <option value="all">Вся история</option>
+                    <option value="6">Последние 6 месяцев</option>
+                    <option value="12">Последние 12 месяцев</option>
+                </select>
+            </div>
+        </div>
+
+        {% if assessments %}
+        <!-- Метрики -->
+        <div class="metrics-row">
+            <div class="metric-card">
+                <div class="metric-value">{{ "%.1f"|format(current_maturity) }}</div>
+                <div class="metric-label">Текущая ЦЗ</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ trend_change }}{% if trend_change > 0 %}↑{% elif trend_change < 0 %}↓{% else %}→{% endif %}</div>
+                <div class="metric-label">Изменение за период</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ total_assessments }}</div>
+                <div class="metric-label">Всего оценок</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ recommendations|length }}</div>
+                <div class="metric-label">Активных рекомендаций</div>
+            </div>
+        </div>
+
+        <!-- Графики -->
+        <div class="dashboard-grid">
+            <!-- Тренд цифровой зрелости -->
+            <div class="chart-card full-width">
+                <h3>📈 Тренд цифровой зрелости</h3>
+                <canvas id="trendChart" style="max-height: 300px;"></canvas>
+            </div>
+
+            <!-- Радарная диаграмма по блокам -->
+            <div class="chart-card">
+                <h3>🎯 Оценка по блокам (текущая)</h3>
+                <canvas id="radarChart"></canvas>
+            </div>
+
+            <!-- Гистограмма факторов -->
+            <div class="chart-card">
+                <h3>📊 Факторы цифровой зрелости</h3>
+                <canvas id="factorsChart"></canvas>
+            </div>
+
+            <!-- Тепловая карта показателей -->
+            <div class="chart-card full-width">
+                <h3>🔥 Тепловая карта показателей</h3>
+                <div id="heatmap"></div>
+            </div>
+
+            <!-- Рекомендации -->
+            <div class="chart-card full-width">
+                <h3>💡 Интеллектуальные рекомендации</h3>
+                <div id="recommendations">
+                    {% for rec in recommendations %}
+                    <div class="recommendations" style="margin-bottom: 10px;">
+                        <strong>🔹 {{ rec.title }}</strong>
+                        <p>{{ rec.description }}</p>
+                        <small style="color: #718096;">Приоритет: {% if rec.priority == 1 %}🔥 Высокий{% elif rec.priority == 2 %}⚠️ Средний{% else %}📌 Низкий{% endif %}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="chart-card" style="text-align: center; padding: 60px;">
+            <h2>📭 Нет данных для отображения</h2>
+            <p>Выполните хотя бы одну оценку цифровой зрелости для организации</p>
+            <a href="/assessment" class="btn" style="margin-top: 20px;">➕ Создать оценку</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        let trendChart, radarChart, factorsChart;
+
+        {% if assessments %}
+        // Данные для графиков
+        const assessmentDates = {{ assessment_dates | tojson }};
+        const maturityScores = {{ maturity_scores | tojson }};
+        const blockScores = {{ block_scores | tojson }};
+        const technicalHistory = {{ technical_history | tojson }};
+        const cognitiveHistory = {{ cognitive_history | tojson }};
+        const personalHistory = {{ personal_history | tojson }};
+
+        // Тренд ЦЗ
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        trendChart = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: assessmentDates,
+                datasets: [{
+                    label: 'Цифровая зрелость',
+                    data: maturityScores,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: (ctx) => `${ctx.raw.toFixed(1)} баллов` } }
+                }
+            }
+        });
+
+        // Радарная диаграмма
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        radarChart = new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Блок 1', 'Блок 2', 'Блок 3', 'Блок 4', 'Блок 5', 'Блок 6', 'Блок 7', 'Блок 8', 'Блок 9'],
+                datasets: [{
+                    label: 'Текущий уровень',
+                    data: blockScores,
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    borderColor: '#667eea',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { r: { beginAtZero: true, max: 100 } }
+            }
+        });
+
+        // Факторы
+        const factorsCtx = document.getElementById('factorsChart').getContext('2d');
+        factorsChart = new Chart(factorsCtx, {
+            type: 'bar',
+            data: {
+                labels: assessmentDates,
+                datasets: [
+                    { label: 'Технический', data: technicalHistory, backgroundColor: '#4299e1' },
+                    { label: 'Когнитивный', data: cognitiveHistory, backgroundColor: '#ed8936' },
+                    { label: 'Личностный', data: personalHistory, backgroundColor: '#48bb78' }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true, max: 100 } }
+            }
+        });
+
+        // Тепловая карта
+        const heatmapData = {{ heatmap_data | tojson }};
+        Plotly.newPlot('heatmap', [{
+            z: heatmapData.z,
+            x: heatmapData.x,
+            y: heatmapData.y,
+            type: 'heatmap',
+            colorscale: 'Viridis',
+            hovertemplate: 'Показатель: %{x}<br>Значение: %{z}<extra></extra>'
+        }], {
+            title: '',
+            xaxis: { title: 'Показатели', tickangle: -45 },
+            yaxis: { title: 'Оценки' }
+        });
+        {% endif %}
+
+        function loadOrgData(orgId) {
+            if (orgId) {
+                window.location.href = `/dashboard/${orgId}`;
+            }
+        }
+
+        function changePeriod(months) {
+            const orgId = document.getElementById('orgSelector').value;
+            if (orgId) {
+                window.location.href = `/dashboard/${orgId}?period=${months}`;
+            }
+        }
+    </script>
+</body>
+</html>

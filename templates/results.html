@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Результаты оценки цифровой зрелости</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .card { background: white; border-radius: 10px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; margin-bottom: 20px; border-left: 4px solid #667eea; padding-left: 15px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .score-circle { width: 180px; height: 180px; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+        .score-inner { width: 150px; height: 150px; border-radius: 50%; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .score-number { font-size: 42px; font-weight: bold; color: #667eea; }
+        .score-label { font-size: 14px; color: #718096; }
+        .factors { display: flex; justify-content: space-around; margin-top: 20px; flex-wrap: wrap; gap: 15px; }
+        .factor { text-align: center; flex: 1; min-width: 100px; padding: 15px; background: #f7fafc; border-radius: 8px; }
+        .factor-value { font-size: 28px; font-weight: bold; }
+        .factor-technical { color: #4299e1; }
+        .factor-cognitive { color: #ed8936; }
+        .factor-personal { color: #48bb78; }
+        .btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 5px; }
+        .btn-secondary { background: #48bb78; }
+        .recommendation-box { background: #ebf8ff; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #4299e1; }
+        .note { color: #718096; font-size: 12px; margin-top: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Результаты оценки цифровой зрелости</h1>
+        <p>Диагностика текущего состояния организации</p>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h2>Интегральный уровень</h2>
+            <div class="grid-2">
+                <div>
+                    <div class="score-circle" id="scoreCircle" style="background: conic-gradient(#667eea 0deg {{ final_score_deg }}deg, #e2e8f0 {{ final_score_deg }}deg);">
+                        <div class="score-inner">
+                            <div class="score-number">{{ final_score_formatted }}</div>
+                            <div class="score-label">из 100 баллов</div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="factors">
+                        <div class="factor">
+                            <h4>Технико-технологический</h4>
+                            <div class="factor-value factor-technical">{{ technical_formatted }}</div>
+                        </div>
+                        <div class="factor">
+                            <h4>Когнитивный</h4>
+                            <div class="factor-value factor-cognitive">{{ cognitive_formatted }}</div>
+                        </div>
+                        <div class="factor">
+                            <h4>Личностный</h4>
+                            <div class="factor-value factor-personal">{{ personal_formatted }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h2>Факторы ЦЗ</h2>
+                <canvas id="factorsChart" style="height: 300px;"></canvas>
+            </div>
+            <div class="card">
+                <h2>Оценка по блокам</h2>
+                <canvas id="radarChart" style="height: 300px;"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📊 3D Поверхность зависимости цифровой зрелости</h2>
+            <p style="color: #718096; margin-bottom: 15px;">
+                Зависимость уровня ЦЗ от технико-технологического и когнитивного факторов.<br>
+                <strong>Красная точка — текущее состояние вашей организации.</strong>
+            </p>
+            <div id="surface3d" style="height: 500px; width: 100%;"></div>
+            <div class="note">* График интерактивен: можно вращать, масштабировать</div>
+        </div>
+
+        <div class="card">
+            <h2>Рекомендации</h2>
+            <div class="recommendation-box">
+                {{ recommendation_text }}
+            </div>
+            <p style="margin-top: 15px;">
+                💡 Для построения дорожной карты перейдите в <a href="/dynamic_planning">Динамическое планирование (DQN)</a>
+            </p>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="/" class="btn">← На главную</a>
+            <a href="/dynamic_planning" class="btn btn-secondary">🎯 Дорожная карта</a>
+            <button onclick="window.print()" class="btn">🖨️ Сохранить</button>
+        </div>
+    </div>
+
+    <script>
+        // Данные от Python
+        const finalScore = parseFloat("{{ final_score_formatted }}") || 0;
+        const technical = parseFloat("{{ technical_formatted }}") || 0;
+        const cognitive = parseFloat("{{ cognitive_formatted }}") || 0;
+        const personal = parseFloat("{{ personal_formatted }}") || 0;
+
+        console.log("Данные из Python:", {finalScore, technical, cognitive, personal});
+
+        // Блоки (передаём из Python)
+        const blockScores = {{ block_scores_json | safe }};
+        console.log("Block scores:", blockScores);
+
+        // График факторов
+        const factorsCtx = document.getElementById('factorsChart');
+        if (factorsCtx) {
+            new Chart(factorsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Технико-технологический', 'Когнитивный', 'Личностный'],
+                    datasets: [{
+                        label: 'Уровень развития (%)',
+                        data: [technical, cognitive, personal],
+                        backgroundColor: ['#4299e1', '#ed8936', '#48bb78']
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
+            });
+        }
+
+        // Радар
+        const radarLabels = ['Личностный', 'Компетенции', 'Орг.культура', 'Процессы', 'Продукты', 'Модели', 'Данные', 'Инфраструктура', 'Глобальная'];
+        const radarData = [1,2,3,4,5,6,7,8,9].map(i => blockScores[i] || 0);
+
+        const radarCtx = document.getElementById('radarChart');
+        if (radarCtx) {
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: radarLabels,
+                    datasets: [{
+                        label: 'Текущий уровень',
+                        data: radarData,
+                        backgroundColor: 'rgba(102,126,234,0.2)',
+                        borderColor: '#667eea',
+                        borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, scales: { r: { beginAtZero: true, max: 100 } } }
+            });
+        }
+
+        // 3D поверхность
+        function calculateMaturity(z1, z2, p) {
+            const z1n = z1/100, z2n = z2/100, pn = p/100;
+            let m = z1n*0.35 + z2n*0.40 + pn*0.25 + (z1n*z2n)*0.15;
+            if (z1n > 0.7 && z2n > 0.7 && pn > 0.6) m += 0.15;
+            else if (z1n < 0.3 || z2n < 0.3) m -= 0.10;
+            return Math.min(100, Math.max(0, m*100 + 5));
+        }
+
+        const grid = 30;
+        const xVals = Array.from({length: grid+1}, (_,i) => i*100/grid);
+        const yVals = Array.from({length: grid+1}, (_,i) => i*100/grid);
+        const zMat = [];
+        for (let i = 0; i <= grid; i++) {
+            const row = [];
+            for (let j = 0; j <= grid; j++) row.push(calculateMaturity(yVals[i], xVals[j], personal));
+            zMat.push(row);
+        }
+
+        Plotly.newPlot('surface3d', [{
+            type: 'surface', x: xVals, y: yVals, z: zMat,
+            colorscale: 'Viridis', colorbar: { title: 'ЦЗ (баллы)' }
+        }], {
+            title: `Личностный фактор = ${personal.toFixed(1)} баллов`,
+            scene: {
+                xaxis: { title: 'Когнитивный фактор, баллы', range: [0,100] },
+                yaxis: { title: 'Технический фактор, баллы', range: [0,100] },
+                zaxis: { title: 'ЦЗ, баллы', range: [0,100] },
+                camera: { eye: { x: 1.5, y: 1.5, z: 1.2 } }
+            },
+            height: 500
+        }, { responsive: true });
+
+        setTimeout(() => {
+            Plotly.addTraces('surface3d', [{
+                type: 'scatter3d', mode: 'markers+text',
+                x: [cognitive], y: [technical], z: [finalScore],
+                marker: { size: 12, color: 'red', symbol: 'circle', line: { color: 'white', width: 2 } },
+                text: ['● ВАША ОРГАНИЗАЦИЯ'], textposition: 'top center',
+                textfont: { color: 'red', size: 12, weight: 'bold' }
+            }]);
+        }, 200);
+    </script>
+</body>
+</html>

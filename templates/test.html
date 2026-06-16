@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Template</title>
+</head>
+<body>
+    <h1>Тест шаблонизатора</h1>
+
+    <h2>Переменная:</h2>
+    <p>{{ test_message }}</p>
+
+    <h2>Цикл по организациям:</h2>
+    <table border="1">
+        <tr><th>ID</th><th>Name</th></tr>
+        {% for org in organizations %}
+        <tr>
+            <td>{{ org.id }}</td>
+            <td>{{ org.name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Условие:</h2>
+    {% if organizations %}
+        <p>✅ Список организаций не пуст</p>
+    {% else %}
+        <p>❌ Список организаций пуст</p>
+    {% endif %}
+</body>
+</html>

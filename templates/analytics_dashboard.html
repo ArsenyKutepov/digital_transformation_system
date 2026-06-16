@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Аналитика - {{ org.name }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F8FAFC; }
+        .header { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: white; padding: 30px; text-align: center; }
+        .container { max-width: 1200px; margin: -20px auto 0; padding: 20px; }
+        .card { background: white; border-radius: 20px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h2 { margin-bottom: 20px; border-left: 4px solid #3B82F6; padding-left: 15px; color: #0F172A; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #E2E8F0; }
+        .stat-number { font-size: 28px; font-weight: bold; color: #3B82F6; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .btn-back { display: inline-block; margin-top: 20px; color: #64748B; text-decoration: none; }
+        .chart-container { height: 300px; margin: 20px 0; }
+        .info-box { background: #F1F5F9; padding: 15px; border-radius: 12px; margin: 15px 0; }
+        .recommendation-item { padding: 10px; margin: 8px 0; background: #EFF6FF; border-radius: 8px; border-left: 3px solid #3B82F6; }
+        .weak-item { padding: 10px; margin: 8px 0; background: #FEE2E2; border-radius: 8px; border-left: 3px solid #EF4444; }
+        .strong-item { padding: 10px; margin: 8px 0; background: #D1FAE5; border-radius: 8px; border-left: 3px solid #10B981; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-chart-line"></i> Аналитика организации</h1>
+        <p>{{ org.name }} | Тип: {{ org.organization_type }}</p>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-number">{{ assessments[-1].final_score if assessments else 0 }}</div><div class="stat-label">Текущий уровень ЦЗ</div></div>
+            <div class="stat-card"><div class="stat-number">{{ assessments|length }}</div><div class="stat-label">Выполнено оценок</div></div>
+            <div class="stat-card"><div class="stat-number">{{ weak_blocks|length }}</div><div class="stat-label">Слабых блоков</div></div>
+            <div class="stat-card"><div class="stat-number">{{ strong_blocks|length }}</div><div class="stat-label">Сильных блоков</div></div>
+        </div>
+
+        <div class="card">
+            <h2>📈 Динамика цифровой зрелости</h2>
+            <div class="chart-container"><canvas id="trendChart"></canvas></div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h2>🎯 Факторы ЦЗ</h2>
+                <div class="chart-container"><canvas id="factorsChart"></canvas></div>
+            </div>
+            <div class="card">
+                <h2>📊 Динамика факторов</h2>
+                <div class="chart-container"><canvas id="factorsTrendChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Оценка по блокам</h2>
+            <div id="blocksContainer"></div>
+        </div>
+
+        <div class="card">
+            <h2>⚠️ Сильные и слабые стороны</h2>
+            <h3>🔴 Требуют внимания</h3>
+            <div id="weakBlocks"></div>
+            <h3>🟢 Сильные стороны</h3>
+            <div id="strongBlocks"></div>
+        </div>
+
+        <div class="card">
+            <h2>💡 Рекомендации</h2>
+            <div id="recommendations"></div>
+        </div>
+
+        <a href="/" class="btn-back">← На главную</a>
+    </div>
+
+    <script>
+        const dates = {{ assessment_dates|safe }};
+        const scores = {{ assessment_scores|safe }};
+        const technical = {{ technical_scores|safe }};
+        const cognitive = {{ cognitive_scores|safe }};
+        const personal = {{ personal_scores|safe }};
+        const blockScores = {{ block_scores|safe }};
+        const weakBlocks = {{ weak_blocks|safe }};
+        const strongBlocks = {{ strong_blocks|safe }};
+        const recommendations = {{ recommendations|safe }};
+
+        if (dates.length > 0) {
+            new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: { labels: dates, datasets: [{ label: 'Цифровая зрелость (баллы)', data: scores, borderColor: '#3B82F6', fill: true }] }
+            });
+
+            new Chart(document.getElementById('factorsTrendChart'), {
+                type: 'line',
+                data: { labels: dates, datasets: [
+                    { label: 'Технический', data: technical, borderColor: '#3B82F6' },
+                    { label: 'Когнитивный', data: cognitive, borderColor: '#F59E0B' },
+                    { label: 'Личностный', data: personal, borderColor: '#10B981' }
+                ] }
+            });
+        }
+
+        if (technical.length > 0) {
+            new Chart(document.getElementById('factorsChart'), {
+                type: 'bar',
+                data: { labels: ['Технический', 'Когнитивный', 'Личностный'], datasets: [{ data: [technical[technical.length-1], cognitive[cognitive.length-1], personal[personal.length-1]], backgroundColor: ['#3B82F6', '#F59E0B', '#10B981'] }] }
+            });
+        }
+
+        const blocksContainer = document.getElementById('blocksContainer');
+        for (let i = 1; i <= 9; i++) {
+            const score = blockScores[i] || 0;
+            const percent = (score / 3) * 100;
+            let color = '#EF4444';
+            let status = 'Требует внимания';
+            if (score > 2) { color = '#10B981'; status = 'Хороший уровень'; }
+            else if (score > 1) { color = '#F59E0B'; status = 'Средний уровень'; }
+            blocksContainer.innerHTML += `<div style="margin-bottom: 15px;"><div>Блок ${i}</div><div style="height: 8px; background: #E2E8F0; border-radius: 4px;"><div style="width: ${percent}%; height: 100%; background: ${color}; border-radius: 4px;"></div></div><div style="font-size: 12px;">${score.toFixed(1)}/3.0 - ${status}</div></div>`;
+        }
+
+        const weakDiv = document.getElementById('weakBlocks');
+        weakBlocks.forEach(w => { weakDiv.innerHTML += `<div class="weak-item">${w.name} (оценка: ${w.score.toFixed(1)}/3.0)</div>`; });
+        if (weakBlocks.length === 0) weakDiv.innerHTML = '<div class="weak-item">✅ Слабых блоков не обнаружено</div>';
+
+        const strongDiv = document.getElementById('strongBlocks');
+        strongBlocks.forEach(s => { strongDiv.innerHTML += `<div class="strong-item">${s.name} (оценка: ${s.score.toFixed(1)}/3.0)</div>`; });
+        if (strongBlocks.length === 0) strongDiv.innerHTML = '<div class="strong-item">Пока нет блоков с высокими оценками</div>';
+
+        const recDiv = document.getElementById('recommendations');
+        recommendations.forEach(r => { recDiv.innerHTML += `<div class="recommendation-item">💡 ${r}</div>`; });
+    </script>
+</body>
+</html>

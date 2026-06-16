@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Планировщик задач - Администрирование</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0F172A; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+        .container { max-width: 1000px; margin: -20px auto 0; padding: 20px; }
+        .card { background: white; border-radius: 20px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { font-size: 24px; margin-bottom: 8px; }
+        h2 { font-size: 18px; margin-bottom: 16px; border-left: 4px solid #667eea; padding-left: 12px; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; background: #D1FAE5; color: #065F46; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+        th { background: #F8FAFC; font-weight: 600; }
+        .btn-run { background: #3B82F6; color: white; border: none; padding: 6px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .btn-run:hover { background: #2563EB; }
+        .btn-back { display: inline-block; margin-top: 20px; color: #64748B; text-decoration: none; }
+        .nav-links { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .nav-link { color: #64748B; text-decoration: none; padding: 5px 10px; border-radius: 8px; }
+        .nav-link:hover { background: #F1F5F9; color: #3B82F6; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⏰ Планировщик задач</h1>
+        <p>Управление фоновыми задачами системы</p>
+    </div>
+    <div class="container">
+        <div class="nav-links">
+            <a href="/" class="nav-link">🏠 Главная</a>
+            <a href="/admin" class="nav-link">⚙️ Администрирование</a>
+            <a href="/analytics/1" class="nav-link">📊 Аналитика</a>
+            <a href="/dynamic_planning" class="nav-link">🎯 DQN планирование</a>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Статус планировщика</h2>
+                <span class="status-badge">✅ Активен (работает в фоне)</span>
+            </div>
+            <p>Планировщик выполняет задачи автоматически по расписанию. Вы также можете запустить любую задачу вручную.</p>
+        </div>
+
+        <div class="card">
+            <h2>📋 Список задач</h2>
+            <table>
+                <thead><tr><th>Задача</th><th>Расписание</th><th>Действие</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Проверка просроченных спринтов</strong><br><small>Проверяет спринты с истекшей датой</small></td><td style="text-align: center;">Ежедневно в 09:00</td><td style="text-align: center;"><button class="btn-run" onclick="runTask('check_overdue_sprints')">▶ Запустить</button></td></tr>
+                    <tr><td><strong>Напоминания о спринтах</strong><br><small>Отправляет напоминания за 3 дня</small></td><td style="text-align: center;">Ежедневно в 10:00</td><td style="text-align: center;"><button class="btn-run" onclick="runTask('send_sprint_reminders')">▶ Запустить</button></td></tr>
+                    <tr><td><strong>Прогнозирование ЦЗ</strong><br><small>Строит прогноз на 3,6,12 месяцев</small></td><td style="text-align: center;">Понедельник в 08:00</td><td style="text-align: center;"><button class="btn-run" onclick="runTask('run_predictions')">▶ Запустить</button></td></tr>
+                    <tr><td><strong>Генерация отчётов</strong><br><small>Создаёт еженедельные Excel-отчёты</small></td><td style="text-align: center;">Пятница в 17:00</td><td style="text-align: center;"><button class="btn-run" onclick="runTask('generate_weekly_reports')">▶ Запустить</button></td></tr>
+                    <tr><td><strong>Обновление бенчмарков</strong><br><small>Пересчитывает отраслевые показатели</small></td><td style="text-align: center;">Ежедневно в 02:00</td><td style="text-align: center;"><button class="btn-run" onclick="runTask('update_benchmarks')">▶ Запустить</button></td></tr>
+                    <tr><td><strong>Очистка сессий</strong><br><small>Удаляет просроченные сессии</small></td><td style="text-align: center;">Ежедневно в 03:00</td><td style="text-align: center;"><button class="btn-run" onclick="runTask('cleanup_old_sessions')">▶ Запустить</button></td></tr>
+                    <tr><td><strong>Резервное копирование</strong><br><small>Создаёт резервную копию БД</small></td><td style="text-align: center;">Воскресенье в 01:00</td><td style="text-align: center;"><button class="btn-run" onclick="runTask('backup_database')">▶ Запустить</button></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <a href="/admin" class="btn-back">← Вернуться в панель администратора</a>
+    </div>
+
+    <script>
+        function runTask(taskName) {
+            if (confirm(`Запустить задачу "${taskName}"?`)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/scheduler';
+                form.innerHTML = `<input type="hidden" name="task" value="${taskName}">`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Цифровая трансформация</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F8FAFC; }
+        .header { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-role { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .logout-btn { color: #F87171; text-decoration: none; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .card { background: white; border-radius: 20px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h2 { margin-bottom: 20px; border-left: 4px solid #3B82F6; padding-left: 15px; }
+        .btn { display: inline-block; padding: 10px 20px; background: #3B82F6; color: white; text-decoration: none; border-radius: 10px; margin: 5px; }
+        .btn-secondary { background: #10B981; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+        th { background: #F1F5F9; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .badge-admin { background: #DBEAFE; color: #1E40AF; }
+        .badge-analyst { background: #D1FAE5; color: #065F46; }
+        .badge-viewer { background: #E2E8F0; color: #475569; }
+        .admin-panel { background: #F1F5F9; border-radius: 12px; padding: 15px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Цифровая трансформация</h1>
+        <div class="user-info">
+            <span>{{ user.username }}</span>
+            <span class="user-role">
+                {% if user.role == 'admin' %}Администратор
+                {% elif user.role == 'analyst' %}Аналитик
+                {% else %}Просмотр
+                {% endif %}
+            </span>
+            <a href="/logout" class="logout-btn">Выйти</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Организации</h2>
+            <div style="margin-bottom: 15px;">
+                <a href="/assessment" class="btn">Новая оценка</a>
+                {% if user.role == 'admin' or user.role == 'analyst' %}
+                <a href="/dynamic_planning" class="btn btn-secondary">DQN планирование</a>
+                {% endif %}
+            </div>
+
+            {% if organizations %}
+            <table>
+                <thead><tr><th>ID</th><th>Название</th><th>Тип</th><th>Дата создания</th><th></th></tr></thead>
+                <tbody>
+                    {% for org in organizations %}
+                    <tr>
+                        <td>{{ org.id }}</td>
+                        <td>{{ org.name }}</td>
+                        <td>{{ org.organization_type }}</td>
+                        <td>{{ org.created_at[:10] }}</td>
+                        <td><a href="/compare/{{ org.id }}">Анализ</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>Нет организаций. Создайте первую оценку.</p>
+            {% endif %}
+        </div>
+
+        {{ admin_panel_html | safe }}
+    </div>
+</body>
+</html>

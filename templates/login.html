@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход | Цифровая трансформация</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-container { max-width: 420px; width: 100%; padding: 20px; }
+        .login-card {
+            background: white;
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+        .logo { text-align: center; margin-bottom: 32px; }
+        .logo h1 { font-size: 28px; background: linear-gradient(135deg, #3B82F6, #8B5CF6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #1E293B; }
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        input:focus { outline: none; border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-login:hover { transform: translateY(-2px); }
+        .register-link { text-align: center; margin-top: 24px; font-size: 14px; }
+        .register-link a { color: #3B82F6; text-decoration: none; }
+        .error { background: #FEE2E2; color: #991B1B; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; }
+        .demo-info { background: #F1F5F9; border-radius: 12px; padding: 12px; margin-top: 24px; font-size: 12px; color: #475569; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo">
+                <i class="fas fa-brain" style="font-size: 48px; color: #3B82F6;"></i>
+                <h1>Цифровая трансформация</h1>
+                <p style="color: #64748B; font-size: 14px;">Система поддержки принятия решений</p>
+            </div>
+
+            {% if error %}
+            <div class="error"><i class="fas fa-exclamation-triangle"></i> {{ error }}</div>
+            {% endif %}
+
+            <form method="POST">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Логин</label>
+                    <input type="text" name="username" placeholder="Введите логин" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Пароль</label>
+                    <input type="password" name="password" placeholder="Введите пароль" required>
+                </div>
+                <button type="submit" class="btn-login">Войти</button>
+            </form>
+
+            <div class="register-link">
+                Нет аккаунта? <a href="/register">Зарегистрироваться</a>
+            </div>
+
+            <div class="demo-info">
+                <i class="fas fa-info-circle"></i> Демо-доступ: admin / admin123
+            </div>
+        </div>
+    </div>
+</body>
+</html>

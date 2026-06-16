@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль | Цифровая трансформация</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F8FAFC; }
+        .header { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); padding: 40px; text-align: center; }
+        .header h1 { color: white; }
+        .container { max-width: 600px; margin: -30px auto 0; padding: 0 24px 48px; }
+        .card { background: white; border-radius: 28px; padding: 32px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: #1E293B; }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #E2E8F0;
+            border-radius: 14px;
+            font-size: 14px;
+            background: #F8FAFC;
+        }
+        input:focus { outline: none; border-color: #3B82F6; background: white; }
+        .btn-save {
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .success { background: #D1FAE5; color: #065F46; padding: 12px; border-radius: 12px; margin-bottom: 20px; }
+        .error { background: #FEE2E2; color: #991B1B; padding: 12px; border-radius: 12px; margin-bottom: 20px; }
+        .info-row { display: flex; padding: 12px 0; border-bottom: 1px solid #E2E8F0; }
+        .info-label { width: 120px; font-weight: 500; color: #64748B; }
+        .info-value { flex: 1; }
+        .back-link { display: inline-block; margin-top: 20px; color: #64748B; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-user-circle"></i> Профиль пользователя</h1>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="info-row">
+                <div class="info-label">Логин:</div>
+                <div class="info-value"><strong>{{ user.username }}</strong></div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Роль:</div>
+                <div class="info-value">
+                    {% if user.role == 'admin' %}👑 Администратор
+                    {% elif user.role == 'analyst' %}📊 Аналитик
+                    {% else %}👁️ Просмотр
+                    {% endif %}
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Email:</div>
+                <div class="info-value">{{ user.email or '—' }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Полное имя:</div>
+                <div class="info-value">{{ user.full_name or '—' }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Зарегистрирован:</div>
+                <div class="info-value">{{ user.created_at[:10] if user.created_at else '—' }}</div>
+            </div>
+
+            <hr style="margin: 24px 0;">
+
+            <h3 style="margin-bottom: 20px;">Смена пароля</h3>
+
+            {% if success %}
+            <div class="success"><i class="fas fa-check-circle"></i> {{ success }}</div>
+            {% endif %}
+            {% if error %}
+            <div class="error"><i class="fas fa-exclamation-triangle"></i> {{ error }}</div>
+            {% endif %}
+
+            <form method="POST">
+                <div class="form-group">
+                    <label>Текущий пароль</label>
+                    <input type="password" name="old_password" required>
+                </div>
+                <div class="form-group">
+                    <label>Новый пароль</label>
+                    <input type="password" name="new_password" required>
+                </div>
+                <div class="form-group">
+                    <label>Подтверждение нового пароля</label>
+                    <input type="password" name="confirm_password" required>
+                </div>
+                <button type="submit" name="change_password" class="btn-save">Изменить пароль</button>
+            </form>
+
+            <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> На главную</a>
+        </div>
+    </div>
+</body>
+</html>

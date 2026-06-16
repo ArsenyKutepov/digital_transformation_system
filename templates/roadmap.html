@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Дорожная карта цифровой трансформации</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .card { background: white; border-radius: 10px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; margin-bottom: 20px; border-left: 4px solid #667eea; padding-left: 15px; }
+        .timeline { position: relative; padding: 20px 0; }
+        .timeline-item { display: flex; margin-bottom: 30px; position: relative; }
+        .timeline-marker { width: 40px; height: 40px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; margin-right: 20px; }
+        .timeline-content { flex: 1; background: #f7fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; }
+        .timeline-title { font-weight: bold; font-size: 18px; margin-bottom: 5px; }
+        .timeline-date { color: #718096; font-size: 12px; margin-bottom: 10px; }
+        .progress-bar { height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; margin: 10px 0; }
+        .progress-fill { height: 100%; background: #48bb78; width: 0%; }
+        .btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Дорожная карта цифровой трансформации</h1>
+        <p>План достижения целевого уровня цифровой зрелости</p>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h2>Прогресс трансформации</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ current_progress }}%;"></div>
+            </div>
+            <p style="text-align: center;">Текущий уровень: <strong>{{ current_score }} баллов</strong> → Целевой уровень: <strong>{{ target_score }} баллов</strong></p>
+        </div>
+
+        <div class="card">
+            <h2>Пошаговый план</h2>
+            <div class="timeline">
+                {% for step in roadmap %}
+                <div class="timeline-item">
+                    <div class="timeline-marker">{{ step.step }}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">{{ step.title }}</div>
+                        <div class="timeline-date">{{ step.timeframe }}</div>
+                        <p>{{ step.description }}</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ step.progress }}%; background: #4299e1;"></div>
+                        </div>
+                        <small>Ожидаемый результат: +{{ step.expected_growth }} баллов до {{ step.expected_maturity }} баллов</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="/" class="btn">← На главную</a>
+                <a href="/dynamic_planning" class="btn">🎯 Построить план DQN</a>
+                <button onclick="window.print()" class="btn">🖨️ Сохранить</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Уведомления</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F8FAFC; }
+        .header { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: white; padding: 30px; text-align: center; }
+        .container { max-width: 800px; margin: -20px auto 0; padding: 20px; }
+        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .notification-item { padding: 15px; border-bottom: 1px solid #E2E8F0; transition: background 0.2s; }
+        .notification-item:hover { background: #F8FAFC; }
+        .notification-unread { background: #EFF6FF; }
+        .notification-title { font-weight: 600; margin-bottom: 5px; }
+        .notification-message { font-size: 13px; color: #475569; margin-bottom: 8px; }
+        .notification-date { font-size: 11px; color: #94A3B8; }
+        .notification-actions { margin-top: 8px; }
+        .notification-actions a { font-size: 12px; color: #3B82F6; text-decoration: none; margin-right: 15px; }
+        .btn { display: inline-block; padding: 8px 16px; border-radius: 10px; text-decoration: none; font-size: 13px; margin-bottom: 20px; }
+        .btn-outline { background: transparent; border: 1px solid #CBD5E1; color: #475569; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #94A3B8; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-bell"></i> Уведомления</h1>
+        <p>Непрочитанных: {{ unread_count }}</p>
+    </div>
+    <div class="container">
+        <div class="card">
+            <a href="/notifications/read-all" class="btn btn-outline">
+                <i class="fas fa-check-double"></i> Прочитать всё
+            </a>
+
+            {% if notifications %}
+                {% for n in notifications %}
+                <div class="notification-item {% if not n.is_read %}notification-unread{% endif %}">
+                    <div class="notification-title">
+                        {% if n.type == 'sprint_start' %}🚀 Спринт начат
+                        {% elif n.type == 'sprint_complete' %}✅ Спринт завершён
+                        {% elif n.type == 'sprint_overdue' %}⚠️ Спринт просрочен
+                        {% elif n.type == 'sprint_reminder' %}🔔 Напоминание
+                        {% else %}📌 {{ n.title }}
+                        {% endif %}
+                    </div>
+                    <div class="notification-message">{{ n.message }}</div>
+                    <div class="notification-date">{{ n.created_at[:16] }}</div>
+                    <div class="notification-actions">
+                        {% if not n.is_read %}
+                        <a href="/notifications/{{ n.id }}/read">Прочитать</a>
+                        {% endif %}
+                        <a href="/notifications/{{ n.id }}/delete">Удалить</a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                    <p>Нет уведомлений</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
